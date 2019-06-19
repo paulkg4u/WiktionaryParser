@@ -19,6 +19,8 @@ RELATIONS = [
     "coordinate terms",
 ]
 
+TRANSLATION_LANGUAGE_CODES = ['hi', 'ml', 'bn', 'ta']
+
 class WiktionaryParser(object):
     def __init__(self):
         self.url = "https://en.wiktionary.org/wiki/{}?printable=yes"
@@ -30,7 +32,7 @@ class WiktionaryParser(object):
         self.current_word = None
         self.PARTS_OF_SPEECH = copy(PARTS_OF_SPEECH)
         self.RELATIONS = copy(RELATIONS)
-        self.INCLUDED_ITEMS = self.RELATIONS + self.PARTS_OF_SPEECH + ['etymology', 'pronunciation']
+        self.INCLUDED_ITEMS = self.RELATIONS + self.PARTS_OF_SPEECH + ['etymology', 'pronunciation', 'translations']
 
     def include_part_of_speech(self, part_of_speech):
         part_of_speech = part_of_speech.lower()
@@ -116,9 +118,26 @@ class WiktionaryParser(object):
             'etymologies': self.parse_etymologies(word_contents),
             'related': self.parse_related_words(word_contents),
             'pronunciations': self.parse_pronunciations(word_contents),
+            'translations': self.parse_translations(word_contents)
         }
         json_obj_list = self.map_to_object(word_data)
         return json_obj_list
+
+
+    def parse_translations(self, word_contents):
+        translations_soup = self.soup.find_all('table', {'class':'translations'})
+        translations = list()
+        for each_translations in translations_soup:
+            eng_meaning = each_translations.attrs.get('data-gloss')
+            local_translations = dict()
+            for each_language in TRANSLATION_LANGUAGE_CODES:
+                local_translations[each_language] = []
+                available_translations = each_translations.find_all('span', {'lang': each_language})
+                for each_at in available_translations:
+                    local_translations[each_language].append(each_at.findChildren()[0].contents[0].replace('\u200d',''))
+            translations.append({'meaning':eng_meaning, 'available_translations': local_translations})
+        return translations
+        
 
     def parse_pronunciations(self, word_contents):
         pronunciation_id_list = self.get_id_list(word_contents, 'pronunciation')
@@ -248,6 +267,7 @@ class WiktionaryParser(object):
                         if related_word_index.startswith(definition_index):
                             def_obj.related_words.append(RelatedWord(relation_type, related_words))
                     data_obj.definition_list.append(def_obj)
+            data_obj.translations = word_data['translations']
             json_obj_list.append(data_obj.to_json())
         return json_obj_list
 

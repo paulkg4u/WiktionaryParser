@@ -1,10 +1,11 @@
 class WordData(object):
     def __init__(self, etymology=None, definitions=None, pronunciations=None,
-                 audio_links=None):
+                 audio_links=None, translations=None):
         self.etymology = etymology if etymology else ''
         self.definition_list = definitions
         self.pronunciations = pronunciations if pronunciations else []
         self.audio_links = audio_links if audio_links else []
+        self.translations = translations if translations else []
 
     @property
     def definition_list(self):
@@ -30,7 +31,8 @@ class WordData(object):
             'pronunciations': {
                 'text': self.pronunciations,
                 'audio': self.audio_links
-            }
+            },
+            'translations': self.translations
         }
 
 
