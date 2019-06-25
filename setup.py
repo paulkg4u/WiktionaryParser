@@ -4,7 +4,7 @@ with open('readme.md', 'r') as readme:
   long_desc = readme.read()
 
 setup(
-  name = 'wiktionaryparser',
+  name = 'wiktionaryparserntranslate',
   version = '0.0.96',
   description = 'A tool to parse word data from wiktionary.com into a JSON object',
   long_description = long_desc,
